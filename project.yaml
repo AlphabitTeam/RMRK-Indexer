@@ -1,15 +1,18 @@
-specVersion: 0.0.1
+specVersion: 0.2.0
 description: Indexer for RMRK based on SubQuery Starter
 repository: ""
-schema: ./schema.graphql
+schema:
+  file: ./schema.graphql
 network:
   # endpoint: wss://node-6885049485545332736.jm.onfinality.io/ws?apikey=652fed48-a419-4272-bd8a-f020d0b7a740
   # endpoint: wss://pub.elara.patract.io/kusama
   endpoint: wss://kusama.api.onfinality.io/public-ws
   # endpoint: wss://kusama-rpc.polkadot.io
   dictionary: https://api.subquery.network/sq/subquery/dictionary-kusama
+  genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe'
 definitions:
   mapping: &mymapping
+    file: ./dist/index.js
     handlers:
       - handler: handleRemark
         kind: substrate/CallHandler

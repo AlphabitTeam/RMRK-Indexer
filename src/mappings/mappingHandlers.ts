@@ -108,7 +108,6 @@ async function mintNFT_V1(remark: RemarkResult) {
 
     nft = NFTUtils.unwrap(remark.value) as NFT;
     canOrElseError<string>(exists, nft.collection, true);
-
     //TODO  collection does not exist , error logic to mintNFT. consider to create collection.
     const collection = await CollectionEntity.get(nft.collection);
     canOrElseError<CollectionEntity>(exists, collection, true);
@@ -668,12 +667,15 @@ export async function handleRemark(extrinsic: SubstrateExtrinsic): Promise<void>
 
   //save remark entity
   let remarkEntities = records.map((r, i) => ({
-    ...r,
     id: `${r.blockNumber}-${i}`,
     interaction: NFTUtils.getAction(hexToString(r.value)),
     extra: JSON.stringify(r.extra),
     specVersion: NFTUtils.getRmrkSpecVersion(hexToString(r.value)),
-    processed: 0
+    processed: 0,
+    value: r.value,
+    caller: r.caller,
+    blockNumber: r.blockNumber,
+    timestamp: r.timestamp
   }))
     .map(RemarkEntity.create);
   for (const remarkEntity of remarkEntities) {
