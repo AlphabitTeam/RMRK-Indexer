@@ -54,7 +54,7 @@ async function collection_V1(remark: RemarkResult) {
     canOrElseError<string>(exists, collection.id, true)
     const entity = await CollectionEntity.get(collection.id)
     canOrElseError<CollectionEntity>(exists, entity)
-    const final = CollectionEntity.create(collection)
+    const final = CollectionEntity.create({id: collection.id})
 
     if (!collection.symbol) {
       collection.symbol = '';
@@ -119,7 +119,7 @@ async function mintNFT_V1(remark: RemarkResult) {
     } else if (specVersion === RmrkSpecVersion.V1) {
       nft.id = getNftId(nft, remark.blockNumber);
     }
-    const newNFT = NFTEntity.create(nft);
+    const newNFT = NFTEntity.create({id: nft.id});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
@@ -163,7 +163,7 @@ async function mintNFT_V2(remark: RemarkResult) {
     isOwnerOrElseError(collection, remark.caller);
 
     nft.id = getNftId(nft, remark.blockNumber);
-    const newNFT = NFTEntity.create(nft);
+    const newNFT = NFTEntity.create({id: nft.id});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
