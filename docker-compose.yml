@@ -28,6 +28,7 @@ services:
       - --local
       - --log-level debug
       - --batch-size=10
+      - --disable-historical=false
 
   graphql-engine:
     image: onfinality/subql-query:latest
