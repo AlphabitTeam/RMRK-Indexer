@@ -5,6 +5,8 @@ import assert from 'assert';
 
 
 
+type FailedEntityProps = Omit<FailedEntity, NonNullable<FunctionPropertyNames<FailedEntity>>>;
+
 export class FailedEntity implements Entity {
 
     constructor(id: string) {
@@ -39,7 +41,7 @@ export class FailedEntity implements Entity {
         assert((id !== null && id !== undefined), "Cannot get FailedEntity entity without an ID");
         const record = await store.get('FailedEntity', id.toString());
         if (record){
-            return FailedEntity.create(record);
+            return FailedEntity.create(record as FailedEntityProps);
         }else{
             return;
         }
@@ -47,7 +49,7 @@ export class FailedEntity implements Entity {
 
 
 
-    static create(record: Partial<Omit<FailedEntity, FunctionPropertyNames<FailedEntity>>> & Entity): FailedEntity {
+    static create(record: FailedEntityProps): FailedEntity {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new FailedEntity(record.id);
         Object.assign(entity,record);

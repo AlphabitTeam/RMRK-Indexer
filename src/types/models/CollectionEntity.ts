@@ -9,6 +9,8 @@ import {
 
 
 
+type CollectionEntityProps = Omit<CollectionEntity, NonNullable<FunctionPropertyNames<CollectionEntity>>>;
+
 export class CollectionEntity implements Entity {
 
     constructor(id: string) {
@@ -57,7 +59,7 @@ export class CollectionEntity implements Entity {
         assert((id !== null && id !== undefined), "Cannot get CollectionEntity entity without an ID");
         const record = await store.get('CollectionEntity', id.toString());
         if (record){
-            return CollectionEntity.create(record);
+            return CollectionEntity.create(record as CollectionEntityProps);
         }else{
             return;
         }
@@ -67,12 +69,12 @@ export class CollectionEntity implements Entity {
     static async getByBlockNumber(blockNumber: bigint): Promise<CollectionEntity[] | undefined>{
       
       const records = await store.getByField('CollectionEntity', 'blockNumber', blockNumber);
-      return records.map(record => CollectionEntity.create(record));
+      return records.map(record => CollectionEntity.create(record as CollectionEntityProps));
       
     }
 
 
-    static create(record: Partial<Omit<CollectionEntity, FunctionPropertyNames<CollectionEntity>>> & Entity): CollectionEntity {
+    static create(record: CollectionEntityProps): CollectionEntity {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new CollectionEntity(record.id);
         Object.assign(entity,record);

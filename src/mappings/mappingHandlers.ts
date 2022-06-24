@@ -119,14 +119,13 @@ async function mintNFT_V1(remark: RemarkResult) {
     } else if (specVersion === RmrkSpecVersion.V1) {
       nft.id = getNftId(nft, remark.blockNumber);
     }
-    const newNFT = NFTEntity.create({id: nft.id});
+    const newNFT = NFTEntity.create({id: nft.id, collectionId: nft.collection});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
     newNFT.name = nft.name;
     newNFT.instance = nft.instance;
     newNFT.transferable = nft.transferable;
-    newNFT.collectionId = nft.collection;
     newNFT.sn = nft.sn;
     newNFT.metadata = nft.metadata;
     newNFT.price = BigInt(0);
@@ -163,14 +162,13 @@ async function mintNFT_V2(remark: RemarkResult) {
     isOwnerOrElseError(collection, remark.caller);
 
     nft.id = getNftId(nft, remark.blockNumber);
-    const newNFT = NFTEntity.create({id: nft.id});
+    const newNFT = NFTEntity.create({id: nft.id, collectionId: nft.collection});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
     newNFT.name = nft.name;
     newNFT.instance = nft.instance;
     newNFT.transferable = nft.transferable;
-    newNFT.collectionId = nft.collection;
     newNFT.sn = nft.sn;
     newNFT.metadata = nft.metadata;
     newNFT.price = BigInt(0);
