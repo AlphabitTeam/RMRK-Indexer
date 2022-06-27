@@ -22,6 +22,8 @@ definitions:
   mapping: &mymapping
     file: ./dist/index.js
     handlers:
+      - handler: handleBlock
+        kind: substrate/BlockHandler
       - handler: handleRemark
         kind: substrate/CallHandler
         filter:

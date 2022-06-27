@@ -40,6 +40,8 @@ export class NFTEntity implements Entity {
 
     public currentOwner?: string;
 
+    public owners?: string[];
+
     public price?: bigint;
 
     public burned?: boolean;
