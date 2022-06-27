@@ -1,5 +1,5 @@
-import { CollectionEntity, Emote, EventEntity, FailedEntity, NFTChild, NFTEntity, RemarkEntity, Resource } from "../types";
-import { SubstrateExtrinsic } from "@subql/types";
+import { BlockTimestamps, CollectionEntity, Emote, EventEntity, FailedEntity, NFTChild, NFTEntity, RemarkEntity, Resource } from "../types";
+import { SubstrateBlock, SubstrateExtrinsic } from "@subql/types";
 import { getRemarksFrom, RemarkResult } from './utils';
 import { Collection, eventFrom, getNftId, getNftId_V01, NFT, RmrkAcceptInteraction, RmrkAcceptType, RmrkEvent, RmrkInteraction, RmrkSendInteraction, RmrkSpecVersion } from './utils/types';
 import NFTUtils, { hexToString } from './utils/NftUtils';
@@ -16,6 +16,18 @@ import {
  * @param {Event[]} events - List of events containing data about an event emitted
  * @returns {string} event id
  */  
+
+export async function handleBlock(block: SubstrateBlock) {
+  const data = {
+    id: block.block.header.number.toString(),
+    blockNumber: block.block.header.number.toBigInt(),
+    timestamp: block.timestamp
+  }
+  const entity = BlockTimestamps.create(data);
+
+  await entity.save();
+
+}
 async function saveEventEntities(events?: Event[]): Promise<string> {
   let eventId = '';
   if (events) {
@@ -119,14 +131,13 @@ async function mintNFT_V1(remark: RemarkResult) {
     } else if (specVersion === RmrkSpecVersion.V1) {
       nft.id = getNftId(nft, remark.blockNumber);
     }
-    const newNFT = NFTEntity.create({id: nft.id});
+    const newNFT = NFTEntity.create({id: nft.id, collectionId: nft.collection});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
     newNFT.name = nft.name;
     newNFT.instance = nft.instance;
     newNFT.transferable = nft.transferable;
-    newNFT.collectionId = nft.collection;
     newNFT.sn = nft.sn;
     newNFT.metadata = nft.metadata;
     newNFT.price = BigInt(0);
@@ -134,8 +145,8 @@ async function mintNFT_V1(remark: RemarkResult) {
     newNFT.events = [eventFrom(RmrkEvent.MINTNFT, remark, '', collection.id, newNFT.id, newNFT.currentOwner, newNFT.price)];
     newNFT.timestampCreatedAt = remark.timestamp;
     newNFT.timestampUpdatedAt = remark.timestamp;
-
     newNFT.eventId = await saveEventEntities(newNFT.events);
+    newNFT.owners = [remark.caller];
 
     logger.info(`SAVED [MINT_NFT ${specVersion} SIMPLE] ${newNFT.id}`)
     await newNFT.save()
@@ -163,14 +174,13 @@ async function mintNFT_V2(remark: RemarkResult) {
     isOwnerOrElseError(collection, remark.caller);
 
     nft.id = getNftId(nft, remark.blockNumber);
-    const newNFT = NFTEntity.create({id: nft.id});
+    const newNFT = NFTEntity.create({id: nft.id, collectionId: nft.collection});
     newNFT.issuer = remark.caller;
     newNFT.currentOwner = remark.caller;
     newNFT.blockNumber = BigInt(remark.blockNumber);
     newNFT.name = nft.name;
     newNFT.instance = nft.instance;
     newNFT.transferable = nft.transferable;
-    newNFT.collectionId = nft.collection;
     newNFT.sn = nft.sn;
     newNFT.metadata = nft.metadata;
     newNFT.price = BigInt(0);
@@ -178,6 +188,7 @@ async function mintNFT_V2(remark: RemarkResult) {
     newNFT.events = [eventFrom(RmrkEvent.MINTNFT, remark, '', collection.id, newNFT.id, newNFT.currentOwner, newNFT.price)];
     newNFT.timestampCreatedAt = remark.timestamp;
     newNFT.timestampUpdatedAt = remark.timestamp;
+    newNFT.owners = [remark.caller];
 
     newNFT.eventId = await saveEventEntities(newNFT.events);
 
@@ -190,6 +201,7 @@ async function mintNFT_V2(remark: RemarkResult) {
 
     else {
       newNFT.currentOwner = recipient;
+      newNFT.owners = [recipient];
 
       const parentNFT = await NFTEntity.get(recipient);
       if (!parentNFT) {
@@ -240,6 +252,7 @@ async function send_V1(remark: RemarkResult) {
       currentNFT.events.push(eventFrom(RmrkEvent.SEND, remark, interaction.recipient, currentNFT.collectionId, currentNFT.id, currentNFT.currentOwner, currentNFT.price));
       currentNFT.currentOwner = interaction.recipient;
       currentNFT.timestampUpdatedAt = remark.timestamp;
+      currentNFT.owners.push(interaction.recipient)
 
       currentNFT.eventId = await saveEventEntities(currentNFT.events);
 
@@ -280,6 +293,7 @@ async function send_V2(remark: RemarkResult) {
         currentNFT.events.push(eventFrom(RmrkEvent.SEND, remark, interaction.recipient, currentNFT.collectionId, currentNFT.id, currentNFT.currentOwner, currentNFT.price));
         currentNFT.currentOwner = interaction.recipient;
         currentNFT.timestampUpdatedAt = remark.timestamp;
+        currentNFT.owners.push(interaction.recipient)
 
         currentNFT.eventId = await saveEventEntities(currentNFT.events);
 
@@ -329,6 +343,7 @@ async function send_V2(remark: RemarkResult) {
           //update currentNFT.currentOwner =>  targetNFT.id             
           currentNFT.events.push(eventFrom(RmrkEvent.SEND, remark, interaction.recipient, currentNFT.collectionId, currentNFT.id, currentNFT.currentOwner, currentNFT.price));
           currentNFT.currentOwner = targetNFT.id;
+          currentNFT.owners.push(targetNFT.id);
           currentNFT.timestampUpdatedAt = remark.timestamp;
 
           currentNFT.eventId = await saveEventEntities(currentNFT.events);
@@ -364,6 +379,7 @@ async function buy(remark: RemarkResult) {
     nft.price = BigInt(unwrapBuyPrice(nft, remark.extra || []));  // Utility.batch_all => price for BUY
     nft.events.push(eventFrom(RmrkEvent.BUY, remark, remark.caller, nft.collectionId, nft.id, nft.currentOwner, nft.price))
     nft.currentOwner = remark.caller
+    nft.owners.push(remark.caller)
     nft.timestampUpdatedAt = remark.timestamp
 
     nft.eventId = await saveEventEntities(nft.events);
