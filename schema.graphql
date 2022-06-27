@@ -1,3 +1,9 @@
+type BlockTimestamps @entity {
+  id: ID! 
+  blockNumber: BigInt!
+  timestamp: Date!
+}
+
 type RemarkEntity @entity {
   id: ID! #id is a required field
   value: String!
@@ -48,6 +54,7 @@ type NFTEntity @entity {
   id: ID!
   metadata: String
   currentOwner: String
+  owners: [String]
   price: BigInt
   burned: Boolean
   blockNumber: BigInt @index

@@ -5,6 +5,8 @@ import assert from 'assert';
 
 
 
+type RemarkEntityProps = Omit<RemarkEntity, NonNullable<FunctionPropertyNames<RemarkEntity>>>;
+
 export class RemarkEntity implements Entity {
 
     constructor(id: string) {
@@ -45,7 +47,7 @@ export class RemarkEntity implements Entity {
         assert((id !== null && id !== undefined), "Cannot get RemarkEntity entity without an ID");
         const record = await store.get('RemarkEntity', id.toString());
         if (record){
-            return RemarkEntity.create(record);
+            return RemarkEntity.create(record as RemarkEntityProps);
         }else{
             return;
         }
@@ -53,7 +55,7 @@ export class RemarkEntity implements Entity {
 
 
 
-    static create(record: Partial<Omit<RemarkEntity, FunctionPropertyNames<RemarkEntity>>> & Entity): RemarkEntity {
+    static create(record: RemarkEntityProps): RemarkEntity {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new RemarkEntity(record.id);
         Object.assign(entity,record);

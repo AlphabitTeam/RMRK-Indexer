@@ -13,6 +13,8 @@ import {
 
 
 
+type NFTEntityProps = Omit<NFTEntity, NonNullable<FunctionPropertyNames<NFTEntity>>>;
+
 export class NFTEntity implements Entity {
 
     constructor(id: string) {
@@ -37,6 +39,8 @@ export class NFTEntity implements Entity {
     public metadata?: string;
 
     public currentOwner?: string;
+
+    public owners?: string[];
 
     public price?: bigint;
 
@@ -73,7 +77,7 @@ export class NFTEntity implements Entity {
         assert((id !== null && id !== undefined), "Cannot get NFTEntity entity without an ID");
         const record = await store.get('NFTEntity', id.toString());
         if (record){
-            return NFTEntity.create(record);
+            return NFTEntity.create(record as NFTEntityProps);
         }else{
             return;
         }
@@ -83,33 +87,33 @@ export class NFTEntity implements Entity {
     static async getByName(name: string): Promise<NFTEntity[] | undefined>{
       
       const records = await store.getByField('NFTEntity', 'name', name);
-      return records.map(record => NFTEntity.create(record));
+      return records.map(record => NFTEntity.create(record as NFTEntityProps));
       
     }
 
     static async getByCollectionId(collectionId: string): Promise<NFTEntity[] | undefined>{
       
       const records = await store.getByField('NFTEntity', 'collectionId', collectionId);
-      return records.map(record => NFTEntity.create(record));
+      return records.map(record => NFTEntity.create(record as NFTEntityProps));
       
     }
 
     static async getByIssuer(issuer: string): Promise<NFTEntity[] | undefined>{
       
       const records = await store.getByField('NFTEntity', 'issuer', issuer);
-      return records.map(record => NFTEntity.create(record));
+      return records.map(record => NFTEntity.create(record as NFTEntityProps));
       
     }
 
     static async getByBlockNumber(blockNumber: bigint): Promise<NFTEntity[] | undefined>{
       
       const records = await store.getByField('NFTEntity', 'blockNumber', blockNumber);
-      return records.map(record => NFTEntity.create(record));
+      return records.map(record => NFTEntity.create(record as NFTEntityProps));
       
     }
 
 
-    static create(record: Partial<Omit<NFTEntity, FunctionPropertyNames<NFTEntity>>> & Entity): NFTEntity {
+    static create(record: NFTEntityProps): NFTEntity {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new NFTEntity(record.id);
         Object.assign(entity,record);

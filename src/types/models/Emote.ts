@@ -5,6 +5,8 @@ import assert from 'assert';
 
 
 
+type EmoteProps = Omit<Emote, NonNullable<FunctionPropertyNames<Emote>>>;
+
 export class Emote implements Entity {
 
     constructor(id: string) {
@@ -37,7 +39,7 @@ export class Emote implements Entity {
         assert((id !== null && id !== undefined), "Cannot get Emote entity without an ID");
         const record = await store.get('Emote', id.toString());
         if (record){
-            return Emote.create(record);
+            return Emote.create(record as EmoteProps);
         }else{
             return;
         }
@@ -47,12 +49,12 @@ export class Emote implements Entity {
     static async getByNftId(nftId: string): Promise<Emote[] | undefined>{
       
       const records = await store.getByField('Emote', 'nftId', nftId);
-      return records.map(record => Emote.create(record));
+      return records.map(record => Emote.create(record as EmoteProps));
       
     }
 
 
-    static create(record: Partial<Omit<Emote, FunctionPropertyNames<Emote>>> & Entity): Emote {
+    static create(record: EmoteProps): Emote {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new Emote(record.id);
         Object.assign(entity,record);

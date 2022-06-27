@@ -5,6 +5,8 @@ import assert from 'assert';
 
 
 
+type EventEntityProps = Omit<EventEntity, NonNullable<FunctionPropertyNames<EventEntity>>>;
+
 export class EventEntity implements Entity {
 
     constructor(id: string) {
@@ -47,7 +49,7 @@ export class EventEntity implements Entity {
         assert((id !== null && id !== undefined), "Cannot get EventEntity entity without an ID");
         const record = await store.get('EventEntity', id.toString());
         if (record){
-            return EventEntity.create(record);
+            return EventEntity.create(record as EventEntityProps);
         }else{
             return;
         }
@@ -55,7 +57,7 @@ export class EventEntity implements Entity {
 
 
 
-    static create(record: Partial<Omit<EventEntity, FunctionPropertyNames<EventEntity>>> & Entity): EventEntity {
+    static create(record: EventEntityProps): EventEntity {
         assert(typeof record.id === 'string', "id must be provided");
         let entity = new EventEntity(record.id);
         Object.assign(entity,record);
